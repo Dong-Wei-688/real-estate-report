@@ -1387,7 +1387,23 @@ function generateReport() {
 function generateFullReportHtml(title, author, model, date) {
     let sectionsHtml = '';
     
-    if (STATE.analysisResults) {
+    // 检查是否有分析结果
+    const hasResults = STATE.analysisResults && Object.keys(STATE.analysisResults).length > 0;
+    
+    if (!hasResults) {
+        // 如果没有分析结果，显示提示信息
+        sectionsHtml = `
+            <h1 style="color:#dc3545;border-bottom:2px solid #dc3545;padding-bottom:8px;">⚠️ 报告生成异常</h1>
+            <p style="line-height:2;color:#666;">
+                报告内容未能正常生成。可能的原因：<br><br>
+                1. <strong>API Key 无效或余额不足</strong> - 请检查您的 DeepSeek/OpenAI/Claude API Key 是否有效<br>
+                2. <strong>网络连接问题</strong> - 请确保网络正常，能够访问 AI API<br>
+                3. <strong>API 服务暂时不可用</strong> - 请稍后重试<br><br>
+                <strong>建议：</strong>请返回工具页面，检查 API Key 配置，然后重新运行分析。
+            </p>
+            <hr style="margin:30px 0;border:none;border-top:1px solid #ddd;">
+        `;
+    } else {
         // 执行摘要
         if (STATE.analysisResults['执行摘要']) {
             sectionsHtml += `
