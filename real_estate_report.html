@@ -1272,8 +1272,46 @@ async function callAI(model, apiKey, prompt) {
     }
 }
 
+// ============================================
+// AI API 调用（带 CORS 代理支持）
+// ============================================
+
+// CORS 代理列表，依次尝试
+const CORS_PROXIES = [
+    'https://corsproxy.io/?',
+    'https://api.allorigins.win/raw?url=',
+];
+
+async function fetchWithProxy(url, options) {
+    // 先直接请求
+    try {
+        const resp = await fetch(url, options);
+        return resp;
+    } catch(e) {
+        // 直接请求失败，尝试代理
+    }
+    
+    for (const proxy of CORS_PROXIES) {
+        try {
+            const proxyUrl = proxy + encodeURIComponent(url);
+            const resp = await fetch(proxyUrl, {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            if (resp.ok) return resp;
+        } catch(e) {
+            continue;
+        }
+    }
+    
+    throw new Error('网络请求失败，可能是跨域限制。建议在电脑浏览器上使用，或尝试其他网络环境。');
+}
+
 async function callClaude(apiKey, prompt) {
-    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    const resp = await fetchWithProxy('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
             'x-api-key': apiKey,
@@ -1296,7 +1334,7 @@ async function callClaude(apiKey, prompt) {
 }
 
 async function callOpenAI(apiKey, prompt) {
-    const resp = await fetch('https://api.openai.com/v1/chat/completions', {
+    const resp = await fetchWithProxy('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${apiKey}`,
@@ -1320,7 +1358,7 @@ async function callOpenAI(apiKey, prompt) {
 }
 
 async function callDeepSeek(apiKey, prompt) {
-    const resp = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const resp = await fetchWithProxy('https://api.deepseek.com/v1/chat/completions', {
         method: 'POST',
         headers: {
             'Authorization': `Bearer ${apiKey}`,
