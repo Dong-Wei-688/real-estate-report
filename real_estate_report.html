@@ -842,6 +842,8 @@ function loadConfig() {
             if (config.reportTitle) document.getElementById('reportTitle').value = config.reportTitle;
             if (config.reportAuthor) document.getElementById('reportAuthor').value = config.reportAuthor;
             updateModelTag();
+            // 加载配置后检查 API Key
+            setTimeout(checkApiKey, 100);
         } catch(e) {}
     }
     updateMetrics();
